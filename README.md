@@ -6,6 +6,7 @@ Semester: BS 8th Semester
 Project: Customer Churn Prediction
 Author: Musfira Nazahat
 Date: 04/13/2026
+
 📊 Project Overview
 This project is a complete end-to-end Machine Learning system that predicts whether a customer will churn or stay.
 
