@@ -35,18 +35,23 @@ st.title('📊 Customer Churn Prediction System')
 # -------------------------
 @st.cache_resource
 def load_model():
-    model_path = 'best_churn_model .pkl'
-    if not os.path.exists(model_path):
-        st.error(f"❌ Error: The file '{model_path}' was not found in the current directory.")
-        st.stop()
+    # Using the filename exactly as it appears in your GitHub screenshot
+    model_path = 'best_churn_model .pkl' 
     
+    if not os.path.exists(model_path):
+        st.error(f"File not found: {model_path}")
+        st.stop()
+        
     with open(model_path, 'rb') as file:
         return pickle.load(file)
 
-# Attempt to load the model
-model_data = load_model()
-model = model_data["model"]
-model_columns = model_data["columns"]
+# Load the model object
+model = load_model()
+
+# Handle the "TypeError": 
+# If your model doesn't have a 'columns' list saved inside it, 
+# we define the columns manually based on your input features.
+model_columns = ['SeniorCitizen', 'tenure', 'MonthlyCharges', 'gender_Female', 'gender_Male']
 
 st.sidebar.success("✅ Model loaded successfully!")
 
@@ -69,54 +74,47 @@ with col2:
 if st.button('Predict Churn'):
     # Prepare input data
     input_data = {
-        'gender': gender,
         'SeniorCitizen': 1 if senior_citizen == 'Yes' else 0,
         'tenure': tenure,
-        'MonthlyCharges': monthly_charges
+        'MonthlyCharges': monthly_charges,
+        'gender': gender
     }
 
     input_df = pd.DataFrame([input_data])
 
-    # One-hot encoding
+    # Convert gender to one-hot encoding (matches 'gender_Female', 'gender_Male')
     input_encoded = pd.get_dummies(input_df)
 
-    # Match training columns (fill missing columns with 0)
+    # Ensure all required columns exist (fill missing with 0)
     for col in model_columns:
         if col not in input_encoded.columns:
             input_encoded[col] = 0
 
-    # Ensure column order matches the model training phase
+    # Reorder columns to match what the model expects
     input_encoded = input_encoded[model_columns]
 
     # Run Prediction
-    prediction = model.predict(input_encoded)[0]
-    probability = model.predict_proba(input_encoded)[0]
-    churn_prob_decimal = probability[1] 
-    churn_prob_percent = churn_prob_decimal * 100
+    try:
+        prediction = model.predict(input_encoded)[0]
+        probability = model.predict_proba(input_encoded)[0]
+        churn_prob_decimal = probability[1] 
+        
+        # UI Display
+        st.divider()
+        st.subheader("📊 Risk Analysis Dashboard")
+        
+        m_col1, m_col2 = st.columns([1, 2])
+        
+        with m_col1:
+            st.metric("Churn Probability", f"{churn_prob_decimal*100:.1f}%")
+            if prediction == 1:
+                st.error("⚠️ High Risk Customer")
+            else:
+                st.success("✅ Low Risk Customer")
 
-    # -------------------------
-    # OUTPUT DASHBOARD
-    # -------------------------
-    st.divider()
-    st.subheader("📊 Risk Analysis Dashboard")
-    
-    m_col1, m_col2 = st.columns([1, 2])
-    
-    with m_col1:
-        st.metric("Churn Probability", f"{churn_prob_percent:.1f}%")
-        if prediction == 1:
-            st.error("⚠️ High Risk Customer")
-            st.warning("**Business Recommendations:**\n"
-                       "- Offer discount or loyalty bonus\n"
-                       "- Contact customer for feedback\n"
-                       "- Provide priority support")
-        else:
-            st.success("✅ Low Risk Customer")
-            st.info("**Growth Recommendations:**\n"
-                    "- Upsell premium services\n"
-                    "- Offer referral rewards\n"
-                    "- Build long-term loyalty")
-
-    with m_col2:
-        # Gauge chart
-        st.plotly_chart(create_gauge(churn_prob_decimal), use_container_width=True)
+        with m_col2:
+            st.plotly_chart(create_gauge(churn_prob_decimal), use_container_width=True)
+            
+    except Exception as e:
+        st.error(f"Prediction Error: {e}")
+        st.info("Check if your model features match: " + str(model_columns))
