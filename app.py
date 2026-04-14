@@ -35,7 +35,7 @@ st.title('📊 Customer Churn Prediction System')
 # -------------------------
 @st.cache_resource
 def load_model():
-    model_path = 'best_churn_model.pkl'
+    model_path = 'best_churn_model .pkl'
     if not os.path.exists(model_path):
         st.error(f"❌ Error: The file '{model_path}' was not found in the current directory.")
         st.stop()
