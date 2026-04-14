@@ -1,10 +1,17 @@
 📊 Customer Churn Prediction Project (End-to-End Machine Learning System)
+
 🧠 Course Project (Week 1 – Week 4)
+
 📌 Course Information
+
 Course: Introduction to Applied Artificial Intelligence
+
 Semester: BS 8th Semester
+
 Project: Customer Churn Prediction
+
 Author: Musfira Nazahat
+
 Date: 04/13/2026
 
 📊 Project Overview
